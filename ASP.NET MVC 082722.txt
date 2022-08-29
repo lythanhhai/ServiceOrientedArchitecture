@@ -1,0 +1,234 @@
+﻿* shorturl.at/eORSX
+* Extensions: NuGet Gallery
+
+
+* dotnet add package Microsoft.EntityFrameworkCore
+* dotnet add package Microsoft.EntityFrameworkCore.Design
+* dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+* dotnet add package Pomelo.EntityFrameworkCore.MySql
+* dotnet tool install --global dotnet-ef
+* dotnet tool update --global dotnet-ef
+* Ef-db-context
+* asp-add-db-context
+
+
+
+
+  "ConnectionStrings": {
+    "Default": "Server=localhost;Database=ProductDb12;Trusted_Connection=True;"
+  }
+
+
+MySQL: server=localhost;database=ProductDb12;user=user;password=password
+
+
+
+
+using Microsoft.EntityFrameworkCore;
+using ProductManager.Models;
+
+
+var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
+var connectionString = builder.Configuration.GetConnectionString("Default");
+
+
+// Add services to the container.
+services.AddControllersWithViews();
+services.AddDbContext<DataContext>(options =>
+    options.UseSqlServer(connectionString));
+
+
+var app = builder.Build();
+MySQL
+https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 29));
+// Replace 'YourDbContext' with the name of your own DbContext derived class.
+services.AddDbContext<DataContext>(
+    dbContextOptions => dbContextOptions
+        .UseMySql(connectionString, serverVersion)
+        .LogTo(Console.WriteLine, LogLevel.Information)
+        .EnableSensitiveDataLogging()
+        .EnableDetailedErrors()
+);
+Product.cs
+using System.ComponentModel.DataAnnotations;
+namespace ProductManager.Models
+{
+    public class Product
+    {
+        [Key]
+        public int Id { get; set; }
+
+
+        [MaxLength(256)]
+        public string Name { get; set; }
+
+
+        [MaxLength(256)]
+        public string Slug { get; set; }
+
+
+        public int Price { get; set; }
+
+
+        public int Quantity { get; set; }
+    }
+}
+* dotnet-ef migrations add InitialDb
+* dotnet-ef database update
+* dotnet-ef migrations add AddSlugIntoProduct
+* dotnet-ef database update
+* dotnet-ef migrations add AddTableCategory
+* dotnet-ef database update
+________________
+Category.cs
+namespace ProductManager.Models
+{
+    public class Category
+    {
+        public Category()
+        {
+            Products = new List<Product>();
+        }
+        public int Id { get; set; }
+
+
+        public string Name { get; set; }
+
+
+        public List<Product> Products { get; set; }
+    }
+}
+Product.cs
+using System.ComponentModel.DataAnnotations;
+
+
+namespace ProductManager.Models
+{
+    public class Product
+    {
+        [Key]
+        public int Id { get; set; }
+        [MaxLength(256)]
+        public string Name { get; set; }
+        [MaxLength(256)]
+        public string Slug { get; set; }
+        public int Price { get; set; }
+        public int Quantity { get; set; }
+        public int CategoryId { get; set; }
+        public Category Category { get; set; }
+    }
+}
+DataContext.cs
+using Microsoft.EntityFrameworkCore;
+
+
+namespace ProductManager.Models
+{
+    public class DataContext : DbContext
+    {
+        public DataContext(DbContextOptions<DataContext> options) : base(options) { }
+
+
+        public DbSet<Product> Products { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId);
+
+
+            base.OnModelCreating(modelBuilder);
+        }
+    }
+}
+________________
+
+
+ProductController.cs
+using Microsoft.AspNetCore.Mvc;
+using ProductManager.Models;
+
+
+namespace ProductManager.Controllers
+{
+    public class ProductController : Controller
+    {
+        private readonly DataContext _context;
+        public ProductController(DataContext context)
+        {
+            _context = context;
+        }
+
+
+        public IActionResult Index()
+        {
+            var products = _context.Products.ToList();
+            return View(products);
+        }
+    }
+}
+________________
+
+
+IProductService.cs
+using ProductManager.Models;
+
+
+namespace ProductManager.Services
+{
+    public interface IProductService
+    {
+        List<Product> GetProducts();
+    }
+}
+ProductService.cs
+using ProductManager.Models;
+
+
+namespace ProductManager.Services
+{
+    public class ProductService : IProductService
+    {
+        private readonly DataContext _context;
+        public ProductService(DataContext context)
+        {
+            _context = context;
+        }
+        public List<Product> GetProducts()
+        {
+            return _context.Products.ToList();
+        }
+    }
+}
+________________
+
+
+ProductController.cs
+using Microsoft.AspNetCore.Mvc;
+using ProductManager.Services;
+
+
+namespace ProductManager.Controllers
+{
+    public class ProductController : Controller
+    {
+        private readonly IProductService _productService;
+        public ProductController(IProductService productService)
+        {
+            _productService = productService;
+        }
+
+
+        public IActionResult Index()
+        {
+            var products = _productService.GetProducts();
+            return View(products);
+        }
+    }
+}
+Program.cs
