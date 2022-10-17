@@ -1,0 +1,71 @@
+@model List<Course>;
+@{
+
+    ViewData["Title"] = "List Course Page";
+    var courses = Model;
+    var typeCourses = ViewBag.typeCourses;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome Course Page</h1>
+    <form action="/Course/Search" method="POST">
+        <div class="form-group">
+            <label for="Search">Search</label>
+            <input type="text" placeholder="Please enter any data..." class="form-control" id="Search" name="Search">
+        </div>
+        <div class="form-group">
+            <label for="TypeCourse">TypeCoursel</label>
+            <select class="form-control" id="typeCourse1" name="typeCourse">
+                @foreach (var typeCourse in typeCourses)
+                {
+                    <option value="@typeCourse.Id">@typeCourse.Name</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Search</button>
+    </form>
+    <form action="/Course/Sort" method="POST">
+        <div class="form-group">
+            <label for="TypeCourse">Sort By</label>
+            <select class="form-control" id="typeSort" name="typeSort">
+                <option value="Name">name</option>
+                <option value="Type">type</option>
+                <option value="all">all</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Sort</button>
+    </form>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Type course</th>
+            <th>Overall</th>
+            <th>Image</th>
+            <th>
+                <a href="Course/Create" class="btn btn-primary">Create</a>
+            </th>
+        </thead>
+        <tbody>
+            @foreach (var course in courses)
+            {
+                <tr>
+                    <td>@course.Id</td>
+                    <td>@course.Name</td>
+                    <td>@course.Slug</td>
+                    <td>@course.TypeCourseId</td>
+                    <td>@course.Overall</td>
+                    <td><img src="@course.Image" /></td>
+                    <td>
+                        <a href="Course/Update/@course.Id" class="btn btn-success">Update</a>
+                        <a href="Course/Delete/@course.Id" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+
+</div>

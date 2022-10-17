@@ -1,0 +1,15 @@
+- dotnet new mvc --name test -o test (Tạo một project dotnet mvc)
+- code test
+- dotnet build
+- dotnet run(dotnet watch run is a command which automaticaly reload project if any change)
+- dotnet add package Microsoft.EntityFrameworkCore
+- dotnet add package Microsoft.EntityFrameworkCore.Design
+- dotnet add package Pomelo.EntityFrameworkCore.MySql
+- dotnet tool install --global dotnet-ef
+- dotnet-ef migrations add InitialDb (create a migrations in database)
+- dotnet-ef database update (update migrations)
+- ef-db-context
+- ef-db-set
+- ef-on-model-creating
+
+many-to-many entity (https://www.entityframeworktutorial.net/efcore/configure-many-to-many-relationship-in-ef-core.aspx)
