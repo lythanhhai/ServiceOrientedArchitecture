@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 var connectionString = builder.Configuration.GetConnectionString("Default");
- 
+
 // Add services to the container.
 services.AddControllersWithViews();
 var serverVersion = new MySqlServerVersion(new Version(8, 0, 29));
@@ -22,16 +22,23 @@ services.AddDbContext<DataContext>(
         .EnableDetailedErrors()
 );
 
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+services.AddCors(o =>
+    o.AddPolicy("CorsPolicy", builder =>
+        builder.WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod()));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
- 
+
 services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-    
+
 services.AddScoped<ITokenService, TokenService>();
- 
+
 services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -55,6 +62,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("CorsPolicy");
 
 app.UseHttpsRedirection();
 
