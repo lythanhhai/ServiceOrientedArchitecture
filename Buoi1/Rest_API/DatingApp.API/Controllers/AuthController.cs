@@ -29,13 +29,14 @@ namespace DatingApp.API.Controllers
         public IActionResult Register([FromBody] AuthUserDto authUserDto)
         {
             authUserDto.Username = authUserDto.Username.ToLower();
-            if(_context.User.Any(u => u.Username == authUserDto.Username))
+            if (_context.User.Any(u => u.Username == authUserDto.Username))
             {
                 return BadRequest("Username is already existed!");
             }
             using var hmac = new HMACSHA512();
             var passwordByes = Encoding.UTF8.GetBytes(authUserDto.Password);
-            var newUser = new Users {
+            var newUser = new Users
+            {
                 Username = authUserDto.Username,
                 PasswordHash = hmac.ComputeHash(passwordByes),
                 PasswordSalt = hmac.Key,
@@ -43,7 +44,11 @@ namespace DatingApp.API.Controllers
             _context.User.Add(newUser);
             _context.SaveChanges();
             var token = _tokenService.CreateToken(newUser.Username);
-            return Ok(token);
+            return Ok(new UserTokenDto
+            {
+                Username = newUser.Username,
+                Token = token
+            });
         }
 
         [HttpPost("login")]
@@ -52,26 +57,30 @@ namespace DatingApp.API.Controllers
             authUserDto.Username = authUserDto.Username.ToLower();
 
             var currentUser = _context.User.FirstOrDefault(u => u.Username == authUserDto.Username);
-            if(currentUser == null)
+            if (currentUser == null)
             {
                 return Unauthorized("Username is invalid");
             }
             using var hmac = new HMACSHA512(currentUser.PasswordSalt);
             var passwordByes = hmac.ComputeHash(Encoding.UTF8.GetBytes(authUserDto.Password));
-            for(int i = 0; i < currentUser.PasswordHash.Length; i++)
+            for (int i = 0; i < currentUser.PasswordHash.Length; i++)
             {
-                if(currentUser.PasswordHash[i] != passwordByes[i])
+                if (currentUser.PasswordHash[i] != passwordByes[i])
                 {
-                    return Unauthorized("Password is invalid"); 
+                    return Unauthorized("Password is invalid");
                 }
             }
-            
+
             var token = _tokenService.CreateToken(currentUser.Username);
-            return Ok(token);
+            return Ok(new UserTokenDto
+            {
+                Username = currentUser.Username,
+                Token = token
+            });
 
         }
         [Authorize]
-        [HttpGet] 
+        [HttpGet]
         public IActionResult Get()
         {
             return Ok(_context.User.ToList());

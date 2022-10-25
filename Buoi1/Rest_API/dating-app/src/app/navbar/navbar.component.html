@@ -10,19 +10,43 @@
             <a class="nav-link" href="#">Link</a>
           </li>
         </ul>
-        <form class="d-flex" role="search">
+        <form class="d-flex" *ngIf="!(accountService.currentUser$ | async)">
           <input
             class="form-control me-2"
             type="text"
             placeholder="Username"
+            name="Username"
+            [(ngModel)]="authUser.username"
           />
           <input
             class="form-control me-2"
             type="password"
             placeholder="Password"
+            name="Password"
+            [(ngModel)]="authUser.password"
           />
-          <button class="btn btn-outline-success" type="submit">Login</button>
+          <button class="btn btn-outline-success" type="button" (click)="login()">
+            Login
+          </button>
         </form>
+        <ul
+          class="d-flex navbar-nav mb-2 mb-lg-0"
+          *ngIf="accountService.currentUser$ | async"
+        >
+          <li class="nav-item">
+            <a class="nav-link active" href="#">
+              Hi, {{ (accountService.currentUser$ | async)?.username }}
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              href="javacript:void(0)"
+              (click)="accountService.logout()"
+              >Logout</a
+            >
+          </li>
+        </ul>
       </div>
     </div>
   </nav>

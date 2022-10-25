@@ -10,4 +10,9 @@ namespace DatingApp.API.DTOs
         [MaxLength(256)]
         public string Password { get; set; }
     }
+    public class UserTokenDto
+    {
+        public string Username { get; set; }
+        public string Token { get; set; }
+    }
 }
